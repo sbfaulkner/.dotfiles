@@ -8,7 +8,18 @@ export ZSH="/Users/sbfaulkner/.oh-my-zsh"
 # load a random theme each time oh-my-zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-ZSH_THEME="robbyrussell"
+ZSH_THEME="spaceship"
+SPACESHIP_VI_MODE_SHOW=false
+SPACESHIP_GCLOUD_SHOW=false
+SPACESHIP_DOCKER_SHOW=false
+SPACESHIP_DIR_PREFIX='
+in '
+SPACESHIP_KUBECTL_SHOW=true
+SPACESHIP_KUBECTL_VERSION_SHOW=false
+
+SPACESHIP_PROMPT_ORDER=(
+    kubectl
+)
 
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
@@ -70,23 +81,44 @@ ZSH_THEME="robbyrussell"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git)
+plugins=(last-working-dir vi-mode)
 
 source $ZSH/oh-my-zsh.sh
 
 # User configuration
 
+export CDPATH=:$(find ~/src -type d -maxdepth 2 | tail -r | paste -s -d : -):$HOME
+
+export GOPATH=$HOME
+
+export PATH=$HOME/bin:/usr/local/sbin:$PATH
+
 # export MANPATH="/usr/local/man:$MANPATH"
+
+# disable autocd (ie. require actual cd command)
+unsetopt autocd
+
+# pass glob through unmodified if it doesn't match (backwards compatible)
+unsetopt nomatch
+
+# don't require enter after recalling command
+unsetopt hist_verify
+
+# don't ask about wildcard for rm
+setopt rm_star_silent
+
+# exit less after last page
+export LESS="$LESS -XE"
 
 # You may need to manually set your language environment
 # export LANG=en_US.UTF-8
 
 # Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='mvim'
-# fi
+if [[ -n $SSH_CONNECTION ]]; then
+  export EDITOR='vim'
+else
+  export EDITOR='code --wait'
+fi
 
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
@@ -100,6 +132,9 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
+alias h=history
+alias gcurl='curl --header "Authorization: Bearer $(gcloud auth print-access-token)"'
+
 [ -f /opt/dev/dev.sh ] && source /opt/dev/dev.sh
 
 [[ -f /opt/dev/sh/chruby/chruby.sh ]] && type chruby >/dev/null 2>&1 || chruby () { source /opt/dev/sh/chruby/chruby.sh; chruby "$@"; }
@@ -109,3 +144,4 @@ source $ZSH/oh-my-zsh.sh
 # cloudplatform: add Shopify clusters to your local kubernetes config
 export KUBECONFIG=${KUBECONFIG:+$KUBECONFIG:}/Users/sbfaulkner/.kube/config:/Users/sbfaulkner/.kube/config.shopify.cloudplatform
 for file in /Users/sbfaulkner/src/github.com/Shopify/cloudplatform/workflow-utils/*.bash; do source ${file}; done
+kubectl-short-aliases
