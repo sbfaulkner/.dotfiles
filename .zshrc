@@ -100,7 +100,8 @@ SPACESHIP_PROMPT_ORDER=(
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(last-working-dir vi-mode)
+[ -f /opt/dev/dev.sh ] && plugins=(last-working-dir vi-mode)
+[ -f /opt/dev/dev.sh ] || plugins=(chgo chruby dev last-working-dir vi-mode)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -156,11 +157,16 @@ alias gcurl='curl --header "Authorization: Bearer $(gcloud auth print-access-tok
 
 [ -f /opt/dev/dev.sh ] && source /opt/dev/dev.sh
 
-[[ -f /opt/dev/sh/chruby/chruby.sh ]] && type chruby >/dev/null 2>&1 || chruby () { source /opt/dev/sh/chruby/chruby.sh; chruby "$@"; }
+[[ -f /opt/dev/sh/chruby/chruby.sh ]] && (
+  type chruby >/dev/null 2>&1 || chruby () { source /opt/dev/sh/chruby/chruby.sh; chruby "$@"; }
+)
 
 [[ -x /opt/homebrew/bin/brew ]] && eval $(/opt/homebrew/bin/brew shellenv)
+[[ -x /usr/local/bin/brew ]] && eval $(/usr/local/bin/brew shellenv)
 
-# cloudplatform: add Shopify clusters to your local kubernetes config
-export KUBECONFIG=${KUBECONFIG:+$KUBECONFIG:}/Users/sbfaulkner/.kube/config:/Users/sbfaulkner/.kube/config.shopify.cloudplatform
-for file in /Users/sbfaulkner/src/github.com/Shopify/cloudplatform/workflow-utils/*.bash; do source ${file}; done
-kubectl-short-aliases
+[ -d /Users/sbfaulkner/src/github.com/Shopify/cloudplatform ] && (
+  # cloudplatform: add Shopify clusters to your local kubernetes config
+  export KUBECONFIG=${KUBECONFIG:+$KUBECONFIG:}/Users/sbfaulkner/.kube/config:/Users/sbfaulkner/.kube/config.shopify.cloudplatform
+  for file in /Users/sbfaulkner/src/github.com/Shopify/cloudplatform/workflow-utils/*.bash; do source ${file}; done
+  kubectl-short-aliases
+)

@@ -16,7 +16,7 @@ async def set_theme(connection, effective_theme):
         new_theme = LIGHT_THEME
     # Get the theme
     preset = await iterm2.ColorPreset.async_get(connection, new_theme)
-    
+
     # Update the list of all profiles and iterate over them.
     profiles = await iterm2.PartialProfile.async_query(connection)
     for partial in profiles:
