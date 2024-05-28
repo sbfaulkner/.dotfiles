@@ -62,7 +62,7 @@ SPACESHIP_PROMPT_ORDER=(
 # zstyle ':omz:update' frequency 13
 
 # Uncomment the following line if pasting URLs and other text is messed up.
-# DISABLE_MAGIC_FUNCTIONS="true"
+DISABLE_MAGIC_FUNCTIONS="true"
 
 # Uncomment the following line to disable colors in ls.
 # DISABLE_LS_COLORS="true"
@@ -111,7 +111,7 @@ export CDPATH=:$(find ~/src -type d -maxdepth 2 | tail -r | paste -s -d : -):$HO
 
 export GOPATH=$HOME
 
-export PATH=$HOME/bin:/usr/local/sbin:$PATH
+export PATH=$HOME/scripts:$HOME/bin:$HOME/src/github.com/Shopify/edge-infrastructure/scripts:/usr/local/sbin:$PATH:$HOME/.krew/bin
 
 # export MANPATH="/usr/local/man:$MANPATH"
 
@@ -153,7 +153,20 @@ fi
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
 alias h=history
-alias gcurl='curl --header "Authorization: Bearer $(gcloud auth print-access-token)"'
+alias gcurl='curl -s --header "Authorization: Bearer $(gcloud auth print-access-token)"'
+
+alias chinaon="sudo networksetup -setsocksfirewallproxy Wi-Fi localhost 1080"
+alias chinaoff="sudo networksetup -setsocksfirewallproxystate Wi-Fi off"
+
+alias decode64="ruby -r base64 -e 'puts Base64.decode64(ARGV[0])' --"
+alias dejson="ejson d --key-from-stdin"
+
+function ssh-rekey() {
+	for host in $*; do
+		ssh-keygen -f ~/.ssh/known_hosts -R $host
+		ssh-keyscan $host >>~/.ssh/known_hosts
+	done
+}
 
 [ -f /opt/dev/dev.sh ] && source /opt/dev/dev.sh
 
@@ -163,6 +176,24 @@ alias gcurl='curl --header "Authorization: Bearer $(gcloud auth print-access-tok
 
 [[ -x /opt/homebrew/bin/brew ]] && eval $(/opt/homebrew/bin/brew shellenv)
 [[ -x /usr/local/bin/brew ]] && eval $(/usr/local/bin/brew shellenv)
+
+trap "rm -f $HOME/.dotfiles/secrets.$$" EXIT
+
+function load_secrets() {
+  eval $(ejson2env $HOME/.dotfiles/secrets.ejson)
+  touch $HOME/.dotfiles/secrets.$$
+}
+
+[[ -f $HOME/.dotfiles/secrets.ejson ]] && load_secrets
+
+function reload_secrets() {
+  [[ $HOME/.dotfiles/secrets.ejson -nt $HOME/.dotfiles/secrets.$$ ]] && {
+    echo "Reloading secrets..."
+    load_secrets
+  }
+}
+
+precmd_functions+=(reload_secrets)
 
 [ -d /Users/sbfaulkner/src/github.com/Shopify/cloudplatform ] && (
   # cloudplatform: add Shopify clusters to your local kubernetes config
